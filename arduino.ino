@@ -2,6 +2,7 @@
 #include <WiFiNINA.h>
 #include <Wire.h>
 #include "Grove_I2C_Motor_Driver.h"
+#define I2C_ADDRESS 0x0F
 
 char ssid[] = "ArduinoMotor";
 char pass[] = "12345678";
@@ -11,93 +12,76 @@ WiFiServer server(8888);
 
 void setup()
 {
-  Motor.begin(0x0f);
-
-  startServer();
+    pinMode(LED_BUILTIN,OUTPUT);
+    Motor.begin(I2C_ADDRESS);
+    startServer();
 }
 
 void loop()
 {
-  WiFiClient client = server.available();
-  if (client)
-  {
-    while (client.connected())
+    digitalWrite(LED_BUILTIN,LOW);
+    WiFiClient client = server.available();
+    if (client)
     {
-      if (client.available())
-      {
-        char command = client.read();
-        processCommand(command);
-      }
+        digitalWrite(LED_BUILTIN,HIGH);
+        while (client.connected())
+        {
+            if (client.available())
+            {
+                int command = atoi(client.readStringUntil('\n').c_str());
+                processCommand(command);
+            }
+        }
+        client.stop();
     }
-    client.stop();
-  }
 }
 
 void startServer()
 {
-  Serial.begin(9600);
-  while (!Serial);
+    Serial.begin(9600);
+    while (!Serial)
+        ;
 
-  Serial.println("Access Point Web Server");
-  // test de connection au module wifi
-  if (WiFi.status() == WL_NO_MODULE)
-  {
-    Serial.println("echec de communication avec wifi module ");
+    Serial.println("Access Point Server");
+    // test de connection au module wifi
+    if (WiFi.status() == WL_NO_MODULE)
+    {
+        Serial.println("echec de communication avec wifi module ");
+        while (true)
+            ;
+    }
 
-    while (true)
-      ;
-  }
+    String fv = WiFi.firmwareVersion();
+    if (fv < WIFI_FIRMWARE_LATEST_VERSION)
+    {
+        Serial.println("Please upgrade the firmware");
+    }
 
-  String fv = WiFi.firmwareVersion();
-  if (fv < WIFI_FIRMWARE_LATEST_VERSION)
-  {
-    Serial.println("Please upgrade the firmware");
-  }
+    Serial.print("Creating access point named :");
+    Serial.println(ssid);
 
-  Serial.print("Creating access point named :");
-  Serial.println(ssid);
-
-  status = WiFi.beginAP(ssid, pass);
-  if (status != WL_AP_LISTENING)
-  {
-    Serial.println("Creating access point failed");
-
-    while (true)
-      ;
-  }
-
-  delay(1000);
-
-  server.begin();
-
-  // wifi status => connected
-  Serial.print("SSID: ");
-  Serial.println(WiFi.SSID());
-
-  IPAddress ip = WiFi.localIP();
-  Serial.print("IP Address: ");
-  Serial.println(ip);
+    status = WiFi.beginAP(ssid, pass);
+    if (status != WL_AP_LISTENING)
+    {
+        Serial.println("Creating access point failed");
+        while (true)
+            ;
+    }
+    delay(1000);
+    server.begin();
+    // wifi status => connected
+    Serial.print("SSID: ");
+    Serial.println(WiFi.SSID());
+    IPAddress ip = WiFi.localIP();
+    Serial.print("IP Address: ");
+    Serial.println(ip);
 }
 
-void processCommand(char command)
+void processCommand(int motorValue)
 {
-  int intValue = atoi(&command);
-  switch (intValue)
-  {
-  case 1:
-    // forward the motor
-    Motor.speed(MOTOR1, 100);
-    Motor.speed(MOTOR2, 100);
-    break;
-  case 2:
-    // reverse the motor
-    Motor.speed(MOTOR1, -100);
-    Motor.speed(MOTOR2, -100);
-    break;
-  default:
-    // Stop the motor
-    Motor.speed(MOTOR1, 0);
-    Motor.speed(MOTOR2, 0);
-    break;
-  }
+    // Ensure motorValue is within the valid range
+    motorValue = constrain(motorValue, -100, 100);
+
+    Motor.speed(MOTOR1, motorValue);
+    Motor.speed(MOTOR2, motorValue);
 }
