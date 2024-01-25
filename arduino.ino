@@ -38,7 +38,7 @@ void loop()
   if (client.connect("192.168.4.1", serverPort))
   {
     Serial.println(motorValue);
-    client.print(motorValue);
+    client.println(motorValue);
     client.stop();
   }
   else
