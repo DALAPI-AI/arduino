@@ -9,6 +9,8 @@ const int varYpin = A0;
 const int varXpin = A1;
 
 int sensorValueX;
+const int deadZoneLow = 448;
+const int deadZoneHigh = 576;
 
 void setup()
 {
@@ -25,28 +27,18 @@ void setup()
 void loop()
 {
   int sensorValueX = analogRead(varXpin);
-  Serial.println(sensorValueX);
-  if (sensorValueX > 723)
+  if (sensorValueX >= deadZoneLow && sensorValueX <= deadZoneHigh)
   {
-    sensorValueX = 1;
+    sensorValueX = 512; // Resting position
   }
-  else
-  {
-    if (sensorValueX < 323)
-    {
-      sensorValueX = 2;
-    }
-    else
-    {
-      sensorValueX = 0;
-    }
-  }
+  int motorValue = map(sensorValueX, 0, 1023, -100, 100);
+
   // Connect to the server
   WiFiClient client;
   if (client.connect("192.168.4.1", serverPort))
   {
-    Serial.println(sensorValueX);
-    client.print(sensorValueX);
+    Serial.println(motorValue);
+    client.print(motorValue);
     client.stop();
   }
   else
