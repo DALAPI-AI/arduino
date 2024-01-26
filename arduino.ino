@@ -9,8 +9,8 @@ const int varYpin = A0;
 const int varXpin = A1;
 
 int sensorValueX;
-const int deadZoneLow = 448;
-const int deadZoneHigh = 576;
+const int deadZoneLow = 512 - 32;
+const int deadZoneHigh = 512 + 32;
 
 void setup()
 {
@@ -31,7 +31,22 @@ void loop()
   {
     sensorValueX = 512; // Resting position
   }
-  int motorValue = map(sensorValueX, 0, 1023, -100, 100);
+  int motorValue;
+  if (sensorValueX > deadZoneHigh)
+  {
+    motorValue = map(sensorValueX, deadZoneHigh, 1023, 0, 100);
+  }
+  else
+  {
+    if (sensorValueX < deadZoneLow)
+    {
+      motorValue = map(sensorValueX, 0, deadZoneLow, -100, 0);
+    }
+    else
+    {
+      motorValue = 0;
+    }
+  }
 
   // Connect to the server
   WiFiClient client;
