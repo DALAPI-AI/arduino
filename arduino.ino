@@ -12,23 +12,25 @@ WiFiServer server(8888);
 
 void setup()
 {
-    pinMode(LED_BUILTIN,OUTPUT);
+    Serial.begin(9600);
+    pinMode(LED_BUILTIN, OUTPUT);
     Motor.begin(I2C_ADDRESS);
     startServer();
 }
 
 void loop()
 {
-    digitalWrite(LED_BUILTIN,LOW);
+    digitalWrite(LED_BUILTIN, LOW);
     WiFiClient client = server.available();
     if (client)
     {
-        digitalWrite(LED_BUILTIN,HIGH);
+        digitalWrite(LED_BUILTIN, HIGH);
         while (client.connected())
         {
             if (client.available())
             {
                 int command = atoi(client.readStringUntil('\n').c_str());
+                Serial.println(command);
                 processCommand(command);
             }
         }
@@ -38,9 +40,6 @@ void loop()
 
 void startServer()
 {
-    Serial.begin(9600);
-    while (!Serial)
-        ;
 
     Serial.println("Access Point Server");
     // test de connection au module wifi
@@ -80,7 +79,17 @@ void startServer()
 void processCommand(int motorValue)
 {
     // Ensure motorValue is within the valid range
-    motorValue = constrain(motorValue, -100, 100);
+    if (motorValue >= 100)
+    {
+        motorValue = 100;
+    }
+    else
+    {
+        if (motorValue <= -100)
+        {
+            motorValue = -100;
+        }
+    }
 
     Motor.speed(MOTOR1, motorValue);
     Motor.speed(MOTOR2, motorValue);
