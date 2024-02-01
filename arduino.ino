@@ -5,7 +5,7 @@
 
 // use I2C Scanner to find address of both Motor driver...
 // right now we will use Left and Right motor side
-#define I2C_FRONT_ADDRESS 0x08
+#define I2C_FRONT_ADDRESS 0x0F
 #define I2C_REAR_ADDRESS 0x0A
 
 char ssid[] = "ArduinoMotor";
@@ -38,7 +38,8 @@ void loop()
         {
             if (client.available())
             {
-                const char *message = client.readStringUntil('\n').c_str();
+                String inputRawData = client.readStringUntil('\n');
+                const char *message = inputRawData.c_str();
                 char *token = strtok(const_cast<char *>(message), &delimiter);
                 if (token != NULL)
                 {
