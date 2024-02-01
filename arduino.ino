@@ -60,13 +60,13 @@ void loop()
     }
     if (sensorValueY > deadZoneHigh)
     {
-        yMotorVal = map(sensorValueY, deadZoneHigh, 1023, 0, 50);
+        yMotorVal = map(sensorValueY, deadZoneHigh, 1023, 0, 100);
     }
     else
     {
         if (sensorValueY < deadZoneLow)
         {
-            yMotorVal = map(sensorValueY, 0, deadZoneLow, -50, 0);
+            yMotorVal = map(sensorValueY, 0, deadZoneLow, -100, 0);
         }
         else
         {
@@ -95,7 +95,7 @@ void loop()
     WiFiClient client;
     if (client.connect("192.168.4.1", serverPort))
     {
-        String message = String(leftMotor) + "," + String(rightMotor);
+        String message = String(rightMotor) + "," + String(leftMotor);
         Serial.println(message);
         client.println(message);
         client.stop();
