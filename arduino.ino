@@ -13,6 +13,8 @@ int sensorValueY;
 const int deadZoneLow = 512 - 32;
 const int deadZoneHigh = 512 + 32;
 
+WiFiClient client;
+
 void setup()
 {
     Serial.begin(9600);
@@ -23,6 +25,12 @@ void setup()
         Serial.println("Attempting to connect to WiFi...");
     }
     Serial.println("Connected to WiFi");
+
+    // Connect to the server
+    if (!client.connect("192.168.4.1", serverPort))
+    {
+        Serial.println("Failed to connect to server");
+    }
 }
 
 void loop()
@@ -90,19 +98,9 @@ void loop()
         rightMotor = 100;
     }
     
-    
-    // Connect to the server
-    WiFiClient client;
-    if (client.connect("192.168.4.1", serverPort))
-    {
-        String message = String(rightMotor) + "," + String(leftMotor);
-        Serial.println(message);
-        client.println(message);
-        client.stop();
-    }
-    else
-    {
-        Serial.println("Failed to connect to server");
-    }
-    delay(200);
+    String message = String(rightMotor) + "," + String(leftMotor);
+    Serial.println(message);
+    client.println(message);
+
+    delay(40);
 }
